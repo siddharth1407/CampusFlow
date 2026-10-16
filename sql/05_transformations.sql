@@ -1,0 +1,52 @@
+-- 05_transformations.sql
+-- Idempotent upsert transformations from staging to core layer
+-- Each statement detects changes using row_hash to prevent redundant writes
+
+-- 1. Upsert Students
+-- INSERT INTO core.students (student_id, department, graduation_year, cgpa, row_hash, last_batch_id)
+-- SELECT student_id, department, graduation_year, cgpa, row_hash, batch_id
+-- FROM staging.students
+-- ON CONFLICT (student_id) DO UPDATE SET
+--     department = EXCLUDED.department,
+--     graduation_year = EXCLUDED.graduation_year,
+--     cgpa = EXCLUDED.cgpa,
+--     row_hash = EXCLUDED.row_hash,
+--     last_updated_at = now(),
+--     last_batch_id = EXCLUDED.last_batch_id
+-- WHERE core.students.row_hash <> EXCLUDED.row_hash;
+
+-- 2. Upsert Companies
+-- INSERT INTO core.companies (company_id, company_name, company_name_raw, sector, row_hash, last_batch_id)
+-- SELECT company_id, company_name, company_name_raw, sector, row_hash, batch_id
+-- FROM staging.companies
+-- ON CONFLICT (company_id) DO UPDATE SET
+--     company_name = EXCLUDED.company_name,
+--     sector = EXCLUDED.sector,
+--     row_hash = EXCLUDED.row_hash,
+--     last_updated_at = now(),
+--     last_batch_id = EXCLUDED.last_batch_id
+-- WHERE core.companies.row_hash <> EXCLUDED.row_hash;
+
+-- 3. Upsert Applications
+-- INSERT INTO core.applications (application_id, student_id, company_id, applied_at, status, row_hash, last_batch_id)
+-- SELECT application_id, student_id, company_id, applied_at, status, row_hash, batch_id
+-- FROM staging.applications
+-- ON CONFLICT (application_id) DO UPDATE SET
+--     status = EXCLUDED.status,
+--     row_hash = EXCLUDED.row_hash,
+--     last_updated_at = now(),
+--     last_batch_id = EXCLUDED.last_batch_id
+-- WHERE core.applications.row_hash <> EXCLUDED.row_hash;
+
+-- 4. Upsert Offers
+-- INSERT INTO core.offers (offer_id, student_id, company_id, compensation_lpa, offer_date, row_hash, last_batch_id)
+-- SELECT offer_id, student_id, company_id, compensation_lpa, offer_date, row_hash, batch_id
+-- FROM staging.offers
+-- ON CONFLICT (offer_id) DO UPDATE SET
+--     compensation_lpa = EXCLUDED.compensation_lpa,
+--     offer_date = EXCLUDED.offer_date,
+--     row_hash = EXCLUDED.row_hash,
+--     last_updated_at = now(),
+--     last_batch_id = EXCLUDED.last_batch_id
+-- WHERE core.offers.row_hash <> EXCLUDED.row_hash;
+

@@ -1,0 +1,79 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    name: Build, Lint & Test Pipeline
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: campuspulse
+          POSTGRES_PASSWORD: campuspulse_secret
+          POSTGRES_DB: campuspulse_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Setup Environment Variables
+        run: |
+          cp .env.example .env
+
+      - name: Code Quality & Linting (Ruff)
+        run: |
+          ruff check src/ config/ tests/
+          ruff format --check src/ config/ tests/
+
+      - name: Generate Reproducible Synthetic Batches
+        run: |
+          python -m src.generate_data --seed 42 --students 1000 --out data/sample
+
+      - name: Run Test Suite (Unit & Integration)
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_DB: campuspulse_db
+          POSTGRES_USER: campuspulse
+          POSTGRES_PASSWORD: campuspulse_secret
+        run: |
+          pytest --cov=src --cov=config tests/
+
+      - name: Run Full Pipeline Showcase (Batch 1, 2, 3 & Report)
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_DB: campuspulse_db
+          POSTGRES_USER: campuspulse
+          POSTGRES_PASSWORD: campuspulse_secret
+        run: |
+          python -m src.pipeline --init-db --batch batch_001
+          python -m src.pipeline --batch batch_002
+          python -m src.pipeline --batch batch_003
+          python -m src.report
+

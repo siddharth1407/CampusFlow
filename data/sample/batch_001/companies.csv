@@ -1,0 +1,23 @@
+company_id,company_name,sector
+COMP001,Google,Software
+COMP002, MICROSOFT CORPORATION ,Software
+COMP003,Amazon Web Services,Software
+COMP004,Apple Inc.,Hardware
+COMP005,Goldman Sachs,Fintech
+COMP006,JPMC,Fintech
+COMP007,Morgan Stanley,Fintech
+COMP008,McKinsey & Company,Consulting
+COMP009,Boston Consulting Group,Consulting
+COMP010,Bain & Company,Consulting
+COMP011,Qualcomm India,Hardware
+COMP012,Nvidia Corp,Hardware
+COMP013,Intel Corporation,Hardware
+COMP014,TI,Core Engineering
+COMP015,Samsung R&D,Product
+COMP016,uber,Product
+COMP017,Flipkart,Product
+COMP018,Tata Consultancy Services,Software
+COMP019,Infosys,Software
+COMP020,Oracle,Software
+,Ghost Tech,Software
+COMP999,,Fintech

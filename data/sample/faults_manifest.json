@@ -1,0 +1,75 @@
+{
+  "seed": 42,
+  "generated_at": "2026-10-16T22:59:52.818578",
+  "batches": {
+    "batch_001": {
+      "batch_id": "batch_001",
+      "total_students": 1003,
+      "total_companies": 22,
+      "total_applications": 3552,
+      "total_offers": 342,
+      "injected_faults": {
+        "MISSING_PK": 4,
+        "MISSING_REQUIRED": 2,
+        "INVALID_YEAR": 1,
+        "INVALID_DATE": 2,
+        "DATE_ORDER_VIOLATION": 1,
+        "ORPHAN_STUDENT": 2,
+        "ORPHAN_COMPANY": 1,
+        "INVALID_STATUS": 1,
+        "INVALID_COMPENSATION": 1,
+        "EXACT_DUPLICATE_ROWS": 1
+      }
+    },
+    "batch_002": {
+      "batch_id": "batch_002",
+      "total_students": 200,
+      "total_companies": 3,
+      "total_applications": 50,
+      "total_offers": 20,
+      "changed_records_count": 20,
+      "late_arriving_count": 29,
+      "injected_faults": {
+        "MISSING_PK": 0,
+        "MISSING_REQUIRED": 1,
+        "INVALID_YEAR": 0,
+        "INVALID_DATE": 0,
+        "DATE_ORDER_VIOLATION": 0,
+        "ORPHAN_STUDENT": 0,
+        "ORPHAN_COMPANY": 0,
+        "INVALID_STATUS": 1,
+        "INVALID_COMPENSATION": 0,
+        "EXACT_DUPLICATE_ROWS": 0
+      }
+    },
+    "batch_003": {
+      "batch_id": "batch_003",
+      "total_students": 200,
+      "total_companies": 3,
+      "total_applications": 50,
+      "total_offers": 20,
+      "changed_records_count": 20,
+      "late_arriving_count": 29,
+      "injected_faults": {
+        "MISSING_PK": 0,
+        "MISSING_REQUIRED": 1,
+        "INVALID_YEAR": 0,
+        "INVALID_DATE": 0,
+        "DATE_ORDER_VIOLATION": 0,
+        "ORPHAN_STUDENT": 0,
+        "ORPHAN_COMPANY": 0,
+        "INVALID_STATUS": 1,
+        "INVALID_COMPENSATION": 0,
+        "EXACT_DUPLICATE_ROWS": 0
+      },
+      "purpose": "Idempotency replay of batch_002"
+    },
+    "batch_004": {
+      "batch_id": "batch_004",
+      "purpose": "Schema drift failure handling demo",
+      "injected_faults": {
+        "SCHEMA_MISMATCH": 1
+      }
+    }
+  }
+}

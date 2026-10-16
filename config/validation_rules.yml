@@ -1,0 +1,63 @@
+allowed_statuses:
+  - applied
+  - shortlisted
+  - interviewed
+  - offered
+  - rejected
+  - withdrawn
+
+allowed_sectors:
+  - Software
+  - Fintech
+  - Consulting
+  - Core Engineering
+  - Analytics
+  - Product
+  - Hardware
+
+allowed_departments:
+  - Computer Science
+  - Electronics
+  - Electrical
+  - Mechanical
+  - Civil
+  - Chemical
+  - Design
+  - Physics
+  - Mathematics
+  - Biosciences
+
+validation_bounds:
+  graduation_year:
+    min: 2020
+    max: 2030
+  cgpa:
+    min: 0.0
+    max: 10.0
+  compensation_lpa:
+    min: 1.0
+    max: 300.0
+
+required_columns:
+  students:
+    - student_id
+    - department
+    - graduation_year
+    - cgpa
+  companies:
+    - company_id
+    - company_name
+    - sector
+  applications:
+    - application_id
+    - student_id
+    - company_id
+    - applied_at
+    - status
+  offers:
+    - offer_id
+    - student_id
+    - company_id
+    - compensation_lpa
+    - offer_date
+
