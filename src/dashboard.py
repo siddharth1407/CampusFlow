@@ -1,4 +1,4 @@
-"""CampusPulse Interactive Streamlit Dashboard.
+"""CampusFlow Interactive Streamlit Dashboard.
 
 Visualizes placement analytics, recruitment funnels, pipeline run health,
 and an interactive quarantine explorer for rejected records.
@@ -13,7 +13,7 @@ from src.db import get_connection
 
 # Page configuration
 st.set_page_config(
-    page_title="CampusPulse Analytics & Observability",
+    page_title="CampusFlow Analytics & Observability",
     page_icon="🎓",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -29,7 +29,7 @@ def load_query(sql: str, params: dict | None = None) -> pd.DataFrame:
 def render_dashboard():
     # Sidebar
     st.sidebar.image("https://img.icons8.com/fluency/96/graduation-cap.png", width=70)
-    st.sidebar.title("CampusPulse")
+    st.sidebar.title("CampusFlow")
     st.sidebar.markdown("**Campus Placement Data Platform & Observability**")
     st.sidebar.divider()
 
@@ -54,7 +54,7 @@ def render_dashboard():
     )
 
     # Header
-    st.title("🎓 CampusPulse: Campus Placement Data Platform")
+    st.title("🎓 CampusFlow: Campus Placement Data Platform")
     st.caption("Live analytics & data engineering observability powered by PostgreSQL 16 & Python")
 
     # Fetch Top-Level KPIs
@@ -202,7 +202,7 @@ def render_dashboard():
     elif view_mode == "🛡️ Data Quality & Quarantine Explorer":
         st.subheader("Data Quality & Quarantined Records Audit")
         st.markdown(
-            "CampusPulse never silently drops dirty rows. Every malformed row is quarantined with an auditable reason code."
+            "CampusFlow never silently drops dirty rows. Every malformed row is quarantined with an auditable reason code."
         )
 
         df_rejects_summary = load_query("""

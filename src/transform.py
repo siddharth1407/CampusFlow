@@ -1,4 +1,4 @@
-"""Data transformation, standardization, hashing, and deduplication for CampusPulse."""
+"""Data transformation, standardization, hashing, and deduplication for CampusFlow."""
 
 import hashlib
 import re

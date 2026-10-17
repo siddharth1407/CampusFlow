@@ -1,4 +1,4 @@
-"""CampusPulse configuration and settings module.
+"""CampusFlow configuration and settings module.
 Loads environment variables and sets up project-wide configuration.
 """
 
@@ -15,9 +15,9 @@ class Settings(BaseSettings):
     # Postgres configuration
     postgres_host: str = "localhost"
     postgres_port: int = 5432
-    postgres_db: str = "campuspulse_db"
-    postgres_user: str = "campuspulse"
-    postgres_password: str = "campuspulse_secret"
+    postgres_db: str = "campusflow_db"
+    postgres_user: str = "campusflow"
+    postgres_password: str = "campusflow_secret"
 
     # Pipeline configuration
     log_level: str = "INFO"

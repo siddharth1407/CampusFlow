@@ -632,7 +632,7 @@ class DataGenerator:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate synthetic CampusPulse placement batches.")
+    parser = argparse.ArgumentParser(description="Generate synthetic CampusFlow placement batches.")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
     parser.add_argument("--students", type=int, default=1000, help="Base number of students")
     parser.add_argument("--out", type=str, default="data/sample", help="Output directory")

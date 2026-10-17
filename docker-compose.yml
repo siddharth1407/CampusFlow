@@ -1,25 +1,22 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: campuspulse_postgres
+    container_name: campusflow_postgres
     restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-campuspulse}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-campuspulse_secret}
-      POSTGRES_DB: ${POSTGRES_DB:-campuspulse_db}
+      POSTGRES_USER: ${POSTGRES_USER:-campusflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-campusflow_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-campusflow_db}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./sql:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-campuspulse} -d ${POSTGRES_DB:-campuspulse_db}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-campusflow} -d ${POSTGRES_DB:-campusflow_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
 volumes:
   postgres_data:
-

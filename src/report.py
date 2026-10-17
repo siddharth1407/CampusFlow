@@ -1,11 +1,11 @@
-"""CampusPulse analytical and pipeline health reporting tool."""
+"""CampusFlow analytical and pipeline health reporting tool."""
 
 from tabulate import tabulate
 
 from src.db import get_connection
 from src.logging_setup import setup_logger
 
-logger = setup_logger("campuspulse.report")
+logger = setup_logger("campusflow.report")
 
 
 def print_placement_summary():

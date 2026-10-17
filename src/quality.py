@@ -1,4 +1,4 @@
-"""Data quality metrics calculation and recording for CampusPulse."""
+"""Data quality metrics calculation and recording for CampusFlow."""
 
 from typing import Any
 
@@ -6,7 +6,7 @@ import psycopg
 
 from src.logging_setup import setup_logger
 
-logger = setup_logger("campuspulse.quality")
+logger = setup_logger("campusflow.quality")
 
 
 def record_quality_metric(

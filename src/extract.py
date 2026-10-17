@@ -1,4 +1,4 @@
-"""Extraction and raw ingestion module for CampusPulse.
+"""Extraction and raw ingestion module for CampusFlow.
 
 Handles file checksumming (idempotency gate), schema validation, and raw landing.
 """
@@ -13,7 +13,7 @@ from config.settings import load_validation_rules
 from src.db import bulk_copy
 from src.logging_setup import setup_logger
 
-logger = setup_logger("campuspulse.extract")
+logger = setup_logger("campusflow.extract")
 
 
 def compute_file_checksum(filepath: Path) -> str:

@@ -15,9 +15,9 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: campuspulse
-          POSTGRES_PASSWORD: campuspulse_secret
-          POSTGRES_DB: campuspulse_db
+          POSTGRES_USER: campusflow
+          POSTGRES_PASSWORD: campusflow_secret
+          POSTGRES_DB: campusflow_db
         ports:
           - 5432:5432
         options: >-
@@ -58,9 +58,9 @@ jobs:
         env:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
-          POSTGRES_DB: campuspulse_db
-          POSTGRES_USER: campuspulse
-          POSTGRES_PASSWORD: campuspulse_secret
+          POSTGRES_DB: campusflow_db
+          POSTGRES_USER: campusflow
+          POSTGRES_PASSWORD: campusflow_secret
         run: |
           pytest --cov=src --cov=config tests/
 
@@ -68,9 +68,9 @@ jobs:
         env:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
-          POSTGRES_DB: campuspulse_db
-          POSTGRES_USER: campuspulse
-          POSTGRES_PASSWORD: campuspulse_secret
+          POSTGRES_DB: campusflow_db
+          POSTGRES_USER: campusflow
+          POSTGRES_PASSWORD: campusflow_secret
         run: |
           python -m src.pipeline --init-db --batch batch_001
           python -m src.pipeline --batch batch_002
@@ -81,9 +81,9 @@ jobs:
         env:
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
-          POSTGRES_DB: campuspulse_db
-          POSTGRES_USER: campuspulse
-          POSTGRES_PASSWORD: campuspulse_secret
+          POSTGRES_DB: campusflow_db
+          POSTGRES_USER: campusflow
+          POSTGRES_PASSWORD: campusflow_secret
         run: |
           python -m src.benchmark
 

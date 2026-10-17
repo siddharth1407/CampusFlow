@@ -1,11 +1,11 @@
-"""Structured logging setup for CampusPulse."""
+"""Structured logging setup for CampusFlow."""
 
 import logging
 import sys
 
 
 def setup_logger(
-    name: str = "campuspulse",
+    name: str = "campusflow",
     level: str = "INFO",
     batch_id: str | None = None,
 ) -> logging.Logger:

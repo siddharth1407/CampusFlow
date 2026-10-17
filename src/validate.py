@@ -1,4 +1,4 @@
-"""Validation and quarantine module for CampusPulse.
+"""Validation and quarantine module for CampusFlow.
 
 Applies strict business validation rules, extracts clean records,
 and prepares rejected records with standardized reason codes.
@@ -13,7 +13,7 @@ from config.settings import load_validation_rules
 from src.logging_setup import setup_logger
 from src.transform import clean_string, normalize_company_name
 
-logger = setup_logger("campuspulse.validate")
+logger = setup_logger("campusflow.validate")
 
 
 class RejectedRecord:

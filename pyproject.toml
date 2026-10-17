@@ -1,5 +1,5 @@
 [project]
-name = "campuspulse"
+name = "campusflow"
 version = "0.1.0"
 description = "Campus Placement Data Platform"
 readme = "README.md"

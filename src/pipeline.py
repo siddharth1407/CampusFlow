@@ -1,4 +1,4 @@
-"""CampusPulse main ETL pipeline orchestrator.
+"""CampusFlow main ETL pipeline orchestrator.
 
 Coordinates ingestion, validation, quarantine, transformation, staging,
 core upserts, quality metrics, and audit logging.
@@ -39,7 +39,7 @@ from src.validate import (
     validate_students,
 )
 
-logger = setup_logger("campuspulse.pipeline")
+logger = setup_logger("campusflow.pipeline")
 
 
 def get_existing_core_state(conn) -> tuple[set[str], set[str], dict[tuple[str, str], date]]:
@@ -72,7 +72,7 @@ def run_pipeline(
         raise FileNotFoundError(f"Batch directory not found: {batch_path}")
 
     logger.info("==================================================")
-    logger.info("Starting CampusPulse pipeline for batch: %s", batch_id)
+    logger.info("Starting CampusFlow pipeline for batch: %s", batch_id)
     logger.info("==================================================")
 
     entities = ["students", "companies", "applications", "offers"]
@@ -292,7 +292,7 @@ def _print_run_summary(summary: dict[str, Any]) -> None:
         ["Rows Quarantined", summary["rows_rejected"]],
     ]
     print("\n" + "=" * 50)
-    print("           CAMPUSPULSE RUN SUMMARY")
+    print("           CAMPUSFLOW RUN SUMMARY")
     print("=" * 50)
     print(tabulate(table_data, tablefmt="fancy_grid"))
 
@@ -304,7 +304,7 @@ def _print_run_summary(summary: dict[str, Any]) -> None:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="CampusPulse Placement Data Pipeline")
+    parser = argparse.ArgumentParser(description="CampusFlow Placement Data Pipeline")
     parser.add_argument("--batch", type=str, required=True, help="Batch directory name (e.g. batch_001)")
     parser.add_argument("--data-dir", type=str, default="data/sample", help="Data root directory")
     parser.add_argument("--init-db", action="store_true", help="Initialize database schemas before running")

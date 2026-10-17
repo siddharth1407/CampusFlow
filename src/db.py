@@ -1,4 +1,4 @@
-"""Database operations, connection pooling, and bulk loading for CampusPulse."""
+"""Database operations, connection pooling, and bulk loading for CampusFlow."""
 
 from collections.abc import Generator, Iterable
 from contextlib import contextmanager
@@ -10,7 +10,7 @@ import psycopg
 from config.settings import settings
 from src.logging_setup import setup_logger
 
-logger = setup_logger("campuspulse.db")
+logger = setup_logger("campusflow.db")
 
 
 def get_db_params() -> dict:

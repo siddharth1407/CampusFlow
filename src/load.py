@@ -10,7 +10,7 @@ from src.db import bulk_copy
 from src.logging_setup import setup_logger
 from src.validate import RejectedRecord
 
-logger = setup_logger("campuspulse.load")
+logger = setup_logger("campusflow.load")
 
 
 def record_run_start(conn: psycopg.Connection, batch_id: str) -> str:

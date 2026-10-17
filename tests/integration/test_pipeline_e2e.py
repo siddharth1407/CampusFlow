@@ -1,4 +1,4 @@
-"""End-to-end integration tests for CampusPulse.
+"""End-to-end integration tests for CampusFlow.
 
 Tests:
 1. Batch 001 baseline load & manifest ground-truth reject matching

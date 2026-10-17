@@ -1,2 +1,1 @@
-# CampusPulse source package
-
+# CampusFlow source package

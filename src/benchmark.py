@@ -16,7 +16,7 @@ from tabulate import tabulate
 from src.db import bulk_copy, get_connection
 from src.logging_setup import setup_logger
 
-logger = setup_logger("campuspulse.benchmark")
+logger = setup_logger("campusflow.benchmark")
 
 
 def benchmark_ingestion_methods(num_rows: int = 50000, sample_insert_n: int = 2000) -> dict[str, Any]:
@@ -169,7 +169,7 @@ def generate_benchmark_report(ingest_stats: dict[str, Any], query_stats: dict[st
     doc_path = Path("docs/benchmark_report.md")
     doc_path.parent.mkdir(parents=True, exist_ok=True)
 
-    markdown = f"""# CampusPulse: High-Volume Scale & SQL Optimization Benchmark
+    markdown = f"""# CampusFlow: High-Volume Scale & SQL Optimization Benchmark
 
 This benchmark demonstrates pipeline throughput under high data volume and profiles the impact of relational indexing using PostgreSQL's `EXPLAIN (ANALYZE, BUFFERS)`.
 
@@ -229,7 +229,7 @@ Query: Relational lookup joining `core.students`, `core.applications`, and `core
 def run_benchmark():
     """CLI entrypoint for running scale benchmark."""
     print("\n" + "=" * 68)
-    print("      CAMPUSPULSE SCALE BENCHMARK & QUERY PROFILING")
+    print("      CAMPUSFLOW SCALE BENCHMARK & QUERY PROFILING")
     print("=" * 68 + "\n")
 
     ingest_stats = benchmark_ingestion_methods(num_rows=50000, sample_insert_n=2000)

@@ -1,5 +1,5 @@
 -- 00_schemas.sql
--- Create layered schemas for CampusPulse
+-- Create layered schemas for CampusFlow
 
 CREATE SCHEMA IF NOT EXISTS raw;
 CREATE SCHEMA IF NOT EXISTS staging;

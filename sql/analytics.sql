@@ -1,5 +1,5 @@
 -- sql/analytics.sql
--- 10 Analytical Queries required by the CampusPulse Specification (Section 8.2)
+-- 10 Analytical Queries required by the CampusFlow Specification (Section 8.2)
 
 -- 1. How many students received at least one offer, and what is the placement rate by department?
 SELECT

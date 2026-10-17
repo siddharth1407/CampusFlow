@@ -6,7 +6,7 @@ RUFF ?= .venv/bin/ruff
 BATCH ?= batch_001
 
 help: ## Show this help message
-	@echo "CampusPulse - Campus Placement Data Platform"
+	@echo "CampusFlow - Campus Placement Data Platform"
 	@echo "Usage: make [target]"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
@@ -20,7 +20,7 @@ setup: ## Create virtualenv and install dependencies
 up: ## Start PostgreSQL via Docker and initialize database schemas
 	docker compose up -d
 	@echo "Waiting for PostgreSQL to be ready..."
-	@until docker compose exec postgres pg_isready -U campuspulse -d campuspulse_db > /dev/null 2>&1; do \
+	@until docker compose exec postgres pg_isready -U campusflow -d campusflow_db > /dev/null 2>&1; do \
 		sleep 1; \
 	done
 	@echo "PostgreSQL is ready! Applying schema migrations..."
@@ -60,7 +60,7 @@ clean: ## Clean cache files and artifacts
 
 demo: ## One-command complete demonstration for recruiters
 	@echo "\n========================================================"
-	@echo "           CAMPUSPULSE END-TO-END DEMO"
+	@echo "           CAMPUSFLOW END-TO-END DEMO"
 	@echo "========================================================"
 	@make up
 	@make generate
