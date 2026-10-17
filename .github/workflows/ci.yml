@@ -77,3 +77,13 @@ jobs:
           python -m src.pipeline --batch batch_003
           python -m src.report
 
+      - name: Run High-Volume Scale Benchmark & Profiler
+        env:
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: 5432
+          POSTGRES_DB: campuspulse_db
+          POSTGRES_USER: campuspulse
+          POSTGRES_PASSWORD: campuspulse_secret
+        run: |
+          python -m src.benchmark
+
