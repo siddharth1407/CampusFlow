@@ -58,7 +58,7 @@ clean: ## Clean cache files and artifacts
 	rm -rf .pytest_cache .ruff_cache htmlcov .coverage
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 
-demo: ## One-command complete demonstration for recruiters
+demo: ## One-command complete end-to-end demonstration
 	@echo "\n========================================================"
 	@echo "           CAMPUSFLOW END-TO-END DEMO"
 	@echo "========================================================"

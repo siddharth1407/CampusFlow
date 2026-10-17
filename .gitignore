@@ -44,3 +44,7 @@ htmlcov/
 data/generated/
 data/runs/
 
+# Local personal prep & notes (never pushed to git)
+docs/interview_prep.md
+*interview*
+
