@@ -166,6 +166,7 @@ def run_pipeline(
                     valid_records, entity_rejects = validate_companies(df_raw)
                     valid_records, _ = deduplicate_records(valid_records, "company_id")
                     stats["companies_read"] = rows_in_file
+                    stats["companies_unmapped"] = sum(1 for r in valid_records if r.get("is_unmapped", False))
                     for r in valid_records:
                         r["row_hash"] = compute_row_hash("companies", r)
                         valid_batch_companies.add(r["company_id"])

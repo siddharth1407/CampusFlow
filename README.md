@@ -24,10 +24,10 @@ The platform includes analytical SQL reporting views, an interactive **Streamlit
 - **5-Layer Medallion Storage Model:** Explicit separation of concerns across `raw`, `staging`, `core`, `ops`, and `analytics` schemas to ensure complete auditability and reproducible replays.
 - **Resilient Quarantine Pattern:** Zero data loss. Corrupt records are isolated into `ops.rejected_records` with their source file, line number, reason code, and unparsed raw JSON payload.
 - **Two-Level Idempotent Ingestion:** Combines file-level SHA-256 checksum gating with row-level hash diffing (`ON CONFLICT DO UPDATE WHERE core.row_hash <> EXCLUDED.row_hash`). Replaying an identical batch results in **zero database writes**.
-- **High-Throughput Bulk Streaming:** Achieves **1.6M+ rows/second** ingestion throughput via PostgreSQL's binary streaming `COPY` protocol.
+- **High-Throughput Bulk Streaming:** Achieves **1.3M+ rows/second** ingestion throughput via PostgreSQL's streaming `COPY` protocol.
 - **Comprehensive Observability:** Run metadata, reject breakdowns, and quality metrics (orphan rates, duplication rates, reject percentages) recorded in `ops.*` tables.
 - **Interactive Web Dashboard:** Streamlit UI providing live KPI monitoring, department salary percentiles, recruitment funnels, and quarantine audits.
-- **Automated Verification:** 19 unit and integration tests executing against a seeded ground-truth fault manifest in ~1.2 seconds with 89% core ETL coverage.
+- **Automated Verification:** 21 unit and integration tests executing against a seeded ground-truth fault manifest in ~1.2 seconds with 91% core ETL coverage.
 
 ---
 
@@ -299,22 +299,22 @@ Calculated using PostgreSQL `PERCENTILE_CONT(0.5)` for true continuous median:
 CampusFlow includes an automated benchmarking suite (`make benchmark`) to quantify pipeline ingestion speed and profile query execution plans via PostgreSQL's `EXPLAIN (ANALYZE, BUFFERS)`.
 
 ### 1. Ingestion Throughput: Streaming `COPY` vs. `INSERT`
-Tested on 50,000 records into PostgreSQL:
+Tested on 10,000 records into PostgreSQL across 3 timed runs (median):
 
-| Ingestion Method | Rows Tested | Duration | Ingestion Throughput | Efficiency Speedup |
+| Ingestion Method | Rows Tested | Median Duration | Ingestion Throughput | Efficiency Speedup |
 |---|---|---|---|---|
-| **Standard Row-by-Row `INSERT`** | 2,000 | 0.253s | 7,895 rows/sec | Baseline (1.0x) |
-| **Psycopg3 Streaming `COPY`** | **50,000** | **0.031s** | **1,638,162 rows/sec** | **207.5x faster** 🚀 |
+| **Standard Row-by-Row `INSERT`** | 10,000 | 1.765s | 5,664 rows/sec | Baseline (1.0x) |
+| **Psycopg Streaming `COPY` Protocol** | **10,000** | **0.008s** | **1,307,595 rows/sec** | **230.8x faster** 🚀 |
 
-- **Why it matters:** Standard `INSERT` incurs round-trip latency, individual transaction commits, and query parsing per row. Streaming binary `COPY` bypasses query planning and streams directly to disk blocks.
+- **Why it matters:** Standard `INSERT` incurs round-trip latency, individual transaction commits, and query parsing per row. Streaming `COPY` protocol streams directly into table tuple storage, bypassing query parsing and network round-trips.
 
 ### 2. SQL Optimization Profile (`EXPLAIN ANALYZE`)
 Profiling relational lookup across `core.students`, `core.applications`, and `core.companies`:
 
 | Scenario | Scan Strategy | Shared Buffer Hit Blocks | Median Execution Time | Speedup Factor |
 |---|---|---|---|---|
-| **Without Index** | `Seq Scan (Full Table Scan)` | 104 blocks | 0.183 ms | Baseline |
-| **With Composite Indexes** | `Index Scan (idx_core_applications_student)` | **7 blocks** | **0.048 ms** | **3.8x faster** ⚡ |
+| **Without Index** | `Seq Scan (Full Table Scan)` | 104 blocks | 0.162 ms | Baseline |
+| **With Composite Indexes** | `Index Scan (idx_core_applications_student)` | **7 blocks** | **0.040 ms** | **4.0x faster** ⚡ |
 
 - **Buffer Hit Reduction:** Composite B-tree indexing reduced shared buffer hits from **104 blocks to 7 blocks (14.9x fewer memory page reads)**, preventing disk I/O bottlenecks when scaling to millions of rows.
 
@@ -334,25 +334,27 @@ make test
 Name                   Stmts   Miss  Cover
 ------------------------------------------
 src/db.py                 40      1    98%
-src/extract.py            52     10    81%
-src/load.py               62      2    97%
+src/extract.py            52      5    90%
+src/load.py               61      1    98%
 src/logging_setup.py      13      0   100%
-src/pipeline.py          163     29    82%
-src/quality.py            30      0   100%
+src/pipeline.py          164     26    84%
+src/quality.py            31      0   100%
 src/transform.py          53      3    94%
 src/validate.py          161     17    89%
 ------------------------------------------
-TOTAL (Core ETL)         574     62    89%
+TOTAL (Core ETL)         575     53    91%
 ```
 
-**19 passing tests covering:**
+**21 passing tests covering:**
 - Manifest reject count validation (`test_batch_001_full_run_and_manifest_matching`)
 - Relational integrity and orphan prevention in `core` (`test_core_referential_integrity`)
 - Incremental update handling (`test_batch_002_incremental_updates`)
 - Exact replay idempotency (`test_batch_003_idempotency_zero_net_changes`)
+- Repeated-file duplicate idempotency across multiple reruns (`test_repeated_file_idempotency_regression`)
 - Schema drift failure isolation (`test_batch_004_schema_drift_handling`)
 - Atomic transaction rollback mid-failure (`test_atomic_transaction_rollback`)
 - Company normalization and alias resolution (`tests/unit/test_company_normalization.py`)
+- Quality metrics calculation and table attribution (`tests/unit/test_quality_metrics.py`)
 - Row hashing stability and difference detection (`tests/unit/test_row_hash_and_dedup.py`)
 - Boundary rules and reason codes (`tests/unit/test_validation_rules.py`)
 

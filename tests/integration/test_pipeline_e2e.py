@@ -123,6 +123,21 @@ def test_batch_003_idempotency_zero_net_changes():
     assert summary["rows_unchanged"] > 0
 
 
+def test_repeated_file_idempotency_regression():
+    """Regression test: running an identical batch multiple times without force_reprocess
+    must consistently skip duplicate files on both the 2nd and 3rd runs."""
+    summary_run2 = run_pipeline("batch_001", data_dir=Path("data/sample"), force_reprocess=False)
+    assert summary_run2["rows_read"] == 0
+    assert summary_run2["rows_loaded_new"] == 0
+
+    # 3rd run: Previously, run 2 would overwrite status with 'skipped_duplicate',
+    # causing run 3 to re-process the file!
+    summary_run3 = run_pipeline("batch_001", data_dir=Path("data/sample"), force_reprocess=False)
+    assert summary_run3["rows_read"] == 0
+    assert summary_run3["rows_loaded_new"] == 0
+    assert summary_run3["status"] == "success"
+
+
 def test_batch_004_schema_drift_handling():
     """Batch 004 has corrupted headers; must mark file as failed without crashing."""
     summary = run_pipeline("batch_004", data_dir=Path("data/sample"), force_reprocess=True)

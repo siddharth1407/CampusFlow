@@ -36,7 +36,7 @@ def check_file_already_processed(conn: psycopg.Connection, file_name: str, check
             (file_name, checksum),
         )
         row = cur.fetchone()
-        if row and row[0] == "processed":
+        if row and row[0] in ("processed", "skipped_duplicate"):
             return True
     return False
 

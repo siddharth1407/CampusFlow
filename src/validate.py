@@ -196,8 +196,8 @@ def validate_companies(
             )
             continue
 
-        # Standardize company name
-        standardized_name, _ = normalize_company_name(raw_name)
+        # Standardize company name and capture mapping status
+        standardized_name, is_mapped = normalize_company_name(raw_name)
 
         valid_records.append(
             {
@@ -205,6 +205,7 @@ def validate_companies(
                 "company_name": standardized_name,
                 "company_name_raw": raw_name,
                 "sector": sector,
+                "is_unmapped": not is_mapped,
                 "batch_id": row.get("batch_id"),
                 "source_row_number": row_num,
             }

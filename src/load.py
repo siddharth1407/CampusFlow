@@ -43,7 +43,11 @@ def record_file_ingestion(
             INSERT INTO ops.file_ingestions (file_name, batch_id, file_checksum, rows_in_file, status, ingested_at)
             VALUES (%s, %s, %s, %s, %s, now())
             ON CONFLICT (file_name, file_checksum) DO UPDATE SET
-                status = EXCLUDED.status,
+                status = CASE
+                    WHEN ops.file_ingestions.status = 'processed' AND EXCLUDED.status = 'skipped_duplicate'
+                    THEN ops.file_ingestions.status
+                    ELSE EXCLUDED.status
+                END,
                 ingested_at = now()
             """,
             (file_name, batch_id, file_checksum, rows_in_file, status),

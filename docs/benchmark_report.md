@@ -6,15 +6,15 @@ This benchmark demonstrates pipeline throughput under high data volume and profi
 
 ## 1. Bulk Ingestion Throughput Benchmark
 
-Testing ingestion of **50,000 rows** into PostgreSQL:
+Testing ingestion of **10,000 rows** into PostgreSQL (median of **3 timed runs**):
 
-| Ingestion Method | Rows Tested | Duration (s) | Throughput (Rows/Sec) | Efficiency Factor |
+| Ingestion Method | Rows Tested | Median Duration (s) | Throughput (Rows/Sec) | Efficiency Factor |
 |---|---|---|---|---|
-| **Standard Row-by-Row `INSERT`** | 2,000 | 0.253s | 7,895 rows/s | Baseline (1.0x) |
-| **Psycopg3 Streaming `COPY`** | **50,000** | **0.031s** | **1,638,162 rows/s** | **207.5x faster** 🚀 |
+| **Standard Row-by-Row `INSERT`** | 10,000 | 1.765s | 5,664 rows/s | Baseline (1.0x) |
+| **Psycopg Streaming `COPY` Protocol** | **10,000** | **0.008s** | **1,307,595 rows/s** | **230.8x faster** 🚀 |
 
 ### Why Streaming `COPY` Outperforms `INSERT`
-1. **Zero Round-Trip Overhead:** Standard `INSERT` sends a separate query string, parameter serialization, and network round-trip per row, whereas `COPY` streams contiguous binary/text chunks directly into PostgreSQL's engine.
+1. **Zero Round-Trip Overhead:** Standard `INSERT` sends a separate query string, parameter serialization, and network round-trip per row, whereas PostgreSQL's `COPY` protocol streams records continuously in bulk directly into the database engine.
 2. **Bypasses Query Parser:** `COPY` streams directly into table tuple storage without re-invoking the SQL query parser, lexer, and execution planner for each row.
 
 ---
@@ -42,8 +42,8 @@ SELECT
 
 | Scenario | Scan Strategy | Shared Buffer Hit Blocks | Median Execution Time (ms) | Speedup Factor |
 |---|---|---|---|---|
-| **Without Index** | `Seq Scan (Full Table Scan)` | 104 blocks | **0.183 ms** | Baseline |
-| **With Composite Indexes** | `Index Scan (idx_core_applications_student)` | **7 blocks** | **0.048 ms** | **3.8x faster** ⚡ |
+| **Without Index** | `Seq Scan (Full Table Scan)` | 104 blocks | **0.162 ms** | Baseline |
+| **With Composite Indexes** | `Index Scan (idx_core_applications_student)` | **7 blocks** | **0.04 ms** | **4.0x faster** ⚡ |
 
 ### Buffer & I/O Reduction
 - **Memory Buffer Efficiency:** The indexed query hit **14.9x fewer buffer blocks** (7 vs 104), minimizing cache churn in shared buffers.
@@ -51,10 +51,10 @@ SELECT
 
 ---
 
-## 3. Interview Defense Talking Points
+## 3. Scale & Performance Architecture Insights
 
-- **Q: How does this pipeline handle 100x data volume?**
-  *"We use PostgreSQL's native streaming `COPY` protocol via `psycopg`, achieving **1,638,162 rows/second**. At 100x volume (millions of rows), we bypass individual insert round-trips and maintain composite B-tree indexes on foreign keys (`company_id`, `student_id`) and temporal columns (`applied_at`, `offer_date`), eliminating full table scans."*
+- **High-Volume Ingestion Strategy:**
+  PostgreSQL's native streaming `COPY` protocol via `psycopg` achieves **1,307,595 rows/second**. When scaling to millions of rows, bypassing individual insert round-trips and using staging tables for bulk load followed by set-based upserts (`ON CONFLICT DO UPDATE`) maximizes database write bandwidth.
 
-- **Q: What did EXPLAIN (ANALYZE, BUFFERS) reveal about your indexes?**
-  *"Without indexes, PostgreSQL must perform sequential heap scans over all relation pages. By indexing `applications(student_id)`, PostgreSQL uses an index scan that reduces execution time by **3.8x** and reduces shared buffer page hits by **14.9x**."*
+- **Query Planner & Buffer Cache Optimization:**
+  Profiling with `EXPLAIN (ANALYZE, BUFFERS)` reveals that without indexes, PostgreSQL must perform sequential heap scans over all relation pages. By indexing `applications(student_id)`, PostgreSQL uses an index scan that reduces execution time by **4.0x** and reduces shared buffer page hits by **14.9x**, preserving buffer cache capacity.

@@ -19,9 +19,12 @@ from src.logging_setup import setup_logger
 logger = setup_logger("campusflow.benchmark")
 
 
-def benchmark_ingestion_methods(num_rows: int = 50000, sample_insert_n: int = 2000) -> dict[str, Any]:
-    """Compare ingestion throughput of standard row-by-row INSERT vs psycopg streaming COPY."""
-    logger.info("Starting ingestion throughput benchmark with %d records...", num_rows)
+def benchmark_ingestion_methods(num_rows: int = 10000, runs: int = 3) -> dict[str, Any]:
+    """Compare ingestion throughput of standard row-by-row INSERT vs psycopg streaming COPY protocol.
+
+    Uses identical row counts across multiple timed runs and calculates median execution times.
+    """
+    logger.info("Starting ingestion throughput benchmark: %d records across %d runs...", num_rows, runs)
 
     # Generate synthetic benchmark data in memory
     rows = [
@@ -66,37 +69,51 @@ def benchmark_ingestion_methods(num_rows: int = 50000, sample_insert_n: int = 20
                 );
             """)
 
-        # 1. Benchmark: Row-by-row INSERT
-        sample_n = min(sample_insert_n, num_rows)
-        start_time = time.perf_counter()
-        with conn.transaction():
+        # 1. Benchmark: Row-by-row INSERT (multiple runs)
+        insert_times = []
+        for run_idx in range(runs):
             with conn.cursor() as cur:
-                for row in rows[:sample_n]:
-                    cur.execute(
-                        "INSERT INTO temp_bench_insert VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-                        row,
-                    )
-        elapsed_insert = time.perf_counter() - start_time
-        insert_throughput = sample_n / elapsed_insert if elapsed_insert > 0 else 0.0
+                cur.execute("TRUNCATE temp_bench_insert;")
+            start_time = time.perf_counter()
+            with conn.transaction():
+                with conn.cursor() as cur:
+                    for row in rows:
+                        cur.execute(
+                            "INSERT INTO temp_bench_insert VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                            row,
+                        )
+            elapsed = time.perf_counter() - start_time
+            insert_times.append(elapsed)
+            logger.info("INSERT run %d/%d: %.3fs", run_idx + 1, runs, elapsed)
 
-        # 2. Benchmark: PostgreSQL Bulk Streaming COPY protocol
-        start_time = time.perf_counter()
-        with conn.transaction():
-            bulk_copy(conn, "temp_bench_copy", columns, rows)
-        elapsed_copy = time.perf_counter() - start_time
+        median_insert = statistics.median(insert_times)
+        insert_throughput = num_rows / median_insert if median_insert > 0 else 0.0
 
-        copy_throughput = num_rows / elapsed_copy if elapsed_copy > 0 else 0.0
+        # 2. Benchmark: PostgreSQL Bulk Streaming COPY protocol (multiple runs)
+        copy_times = []
+        for run_idx in range(runs):
+            with conn.cursor() as cur:
+                cur.execute("TRUNCATE temp_bench_copy;")
+            start_time = time.perf_counter()
+            with conn.transaction():
+                bulk_copy(conn, "temp_bench_copy", columns, rows)
+            elapsed = time.perf_counter() - start_time
+            copy_times.append(elapsed)
+            logger.info("COPY run %d/%d: %.4fs", run_idx + 1, runs, elapsed)
+
+        median_copy = statistics.median(copy_times)
+        copy_throughput = num_rows / median_copy if median_copy > 0 else 0.0
         speedup = copy_throughput / insert_throughput if insert_throughput > 0 else 1.0
 
         with conn.cursor() as cur:
             cur.execute("DROP TABLE IF EXISTS temp_bench_insert; DROP TABLE IF EXISTS temp_bench_copy;")
 
     return {
-        "insert_sample_rows": sample_n,
-        "insert_time_sec": round(elapsed_insert, 3),
+        "num_rows": num_rows,
+        "runs": runs,
+        "insert_time_sec": round(median_insert, 3),
         "insert_rows_per_sec": int(insert_throughput),
-        "copy_total_rows": num_rows,
-        "copy_time_sec": round(elapsed_copy, 3),
+        "copy_time_sec": round(median_copy, 3),
         "copy_rows_per_sec": int(copy_throughput),
         "speedup_factor": round(speedup, 1),
     }
@@ -177,15 +194,15 @@ This benchmark demonstrates pipeline throughput under high data volume and profi
 
 ## 1. Bulk Ingestion Throughput Benchmark
 
-Testing ingestion of **{ingest_stats["copy_total_rows"]:,} rows** into PostgreSQL:
+Testing ingestion of **{ingest_stats["num_rows"]:,} rows** into PostgreSQL (median of **{ingest_stats["runs"]} timed runs**):
 
-| Ingestion Method | Rows Tested | Duration (s) | Throughput (Rows/Sec) | Efficiency Factor |
+| Ingestion Method | Rows Tested | Median Duration (s) | Throughput (Rows/Sec) | Efficiency Factor |
 |---|---|---|---|---|
-| **Standard Row-by-Row `INSERT`** | {ingest_stats["insert_sample_rows"]:,} | {ingest_stats["insert_time_sec"]}s | {ingest_stats["insert_rows_per_sec"]:,} rows/s | Baseline (1.0x) |
-| **Psycopg3 Streaming `COPY`** | **{ingest_stats["copy_total_rows"]:,}** | **{ingest_stats["copy_time_sec"]}s** | **{ingest_stats["copy_rows_per_sec"]:,} rows/s** | **{ingest_stats["speedup_factor"]}x faster** 🚀 |
+| **Standard Row-by-Row `INSERT`** | {ingest_stats["num_rows"]:,} | {ingest_stats["insert_time_sec"]}s | {ingest_stats["insert_rows_per_sec"]:,} rows/s | Baseline (1.0x) |
+| **Psycopg Streaming `COPY` Protocol** | **{ingest_stats["num_rows"]:,}** | **{ingest_stats["copy_time_sec"]}s** | **{ingest_stats["copy_rows_per_sec"]:,} rows/s** | **{ingest_stats["speedup_factor"]}x faster** 🚀 |
 
 ### Why Streaming `COPY` Outperforms `INSERT`
-1. **Zero Round-Trip Overhead:** Standard `INSERT` sends a separate query string, parameter serialization, and network round-trip per row, whereas `COPY` streams contiguous binary/text chunks directly into PostgreSQL's engine.
+1. **Zero Round-Trip Overhead:** Standard `INSERT` sends a separate query string, parameter serialization, and network round-trip per row, whereas PostgreSQL's `COPY` protocol streams records continuously in bulk directly into the database engine.
 2. **Bypasses Query Parser:** `COPY` streams directly into table tuple storage without re-invoking the SQL query parser, lexer, and execution planner for each row.
 
 ---
@@ -211,13 +228,13 @@ Query: Relational lookup joining `core.students`, `core.applications`, and `core
 
 ---
 
-## 3. Interview Defense Talking Points
+## 3. Scale & Performance Architecture Insights
 
-- **Q: How does this pipeline handle 100x data volume?**
-  *"We use PostgreSQL's native streaming `COPY` protocol via `psycopg`, achieving **{ingest_stats["copy_rows_per_sec"]:,} rows/second**. At 100x volume (millions of rows), we bypass individual insert round-trips and maintain composite B-tree indexes on foreign keys (`company_id`, `student_id`) and temporal columns (`applied_at`, `offer_date`), eliminating full table scans."*
+- **High-Volume Ingestion Strategy:**
+  PostgreSQL's native streaming `COPY` protocol via `psycopg` achieves **{ingest_stats["copy_rows_per_sec"]:,} rows/second**. When scaling to millions of rows, bypassing individual insert round-trips and using staging tables for bulk load followed by set-based upserts (`ON CONFLICT DO UPDATE`) maximizes database write bandwidth.
 
-- **Q: What did EXPLAIN (ANALYZE, BUFFERS) reveal about your indexes?**
-  *"Without indexes, PostgreSQL must perform sequential heap scans over all relation pages. By indexing `applications(student_id)`, PostgreSQL uses an index scan that reduces execution time by **{query_stats["speedup_factor"]}x** and reduces shared buffer page hits by **{query_stats["buffer_reduction"]}x**."*
+- **Query Planner & Buffer Cache Optimization:**
+  Profiling with `EXPLAIN (ANALYZE, BUFFERS)` reveals that without indexes, PostgreSQL must perform sequential heap scans over all relation pages. By indexing `applications(student_id)`, PostgreSQL uses an index scan that reduces execution time by **{query_stats["speedup_factor"]}x** and reduces shared buffer page hits by **{query_stats["buffer_reduction"]}x**, preserving buffer cache capacity.
 """
 
     with open(doc_path, "w", encoding="utf-8") as f:
@@ -232,19 +249,19 @@ def run_benchmark():
     print("      CAMPUSFLOW SCALE BENCHMARK & QUERY PROFILING")
     print("=" * 68 + "\n")
 
-    ingest_stats = benchmark_ingestion_methods(num_rows=50000, sample_insert_n=2000)
+    ingest_stats = benchmark_ingestion_methods(num_rows=10000, runs=3)
 
     ingest_table = [
         [
             "Row-by-Row INSERT",
-            f"{ingest_stats['insert_sample_rows']:,}",
+            f"{ingest_stats['num_rows']:,}",
             f"{ingest_stats['insert_time_sec']}s",
             f"{ingest_stats['insert_rows_per_sec']:,} rows/s",
             "1.0x",
         ],
         [
-            "Psycopg3 Streaming COPY",
-            f"{ingest_stats['copy_total_rows']:,}",
+            "Streaming COPY Protocol",
+            f"{ingest_stats['num_rows']:,}",
             f"{ingest_stats['copy_time_sec']}s",
             f"{ingest_stats['copy_rows_per_sec']:,} rows/s",
             f"{ingest_stats['speedup_factor']}x faster",

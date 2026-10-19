@@ -62,9 +62,16 @@ def compute_and_record_metrics(
     if companies_read > 0:
         metrics["unmapped_rate_companies_pct"] = (companies_unmapped / companies_read) * 100.0
 
-    # Record all calculated metrics
+    metric_table_map = {
+        "overall_reject_rate_pct": "overall",
+        "duplicate_rate_applications_pct": "applications",
+        "orphan_rate_offers_pct": "offers",
+        "unmapped_rate_companies_pct": "companies",
+    }
+
+    # Record all calculated metrics with correct table attribution
     for metric_name, val in metrics.items():
-        table = metric_name.split("_")[-1]  # e.g. 'applications' or 'offers'
+        table = metric_table_map.get(metric_name, "pipeline")
         record_quality_metric(conn, run_id, table, metric_name, val)
 
     logger.info("Recorded %d quality metrics for run %s", len(metrics), run_id)
